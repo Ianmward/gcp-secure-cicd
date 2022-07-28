@@ -50,3 +50,7 @@ sed -e "s/project-id-here/${PROJECT_ID}/" templates/template.attestor-policy.yam
 # creates the Google Cloud Deploy pipeline
 gcloud deploy apply --file clouddeploy.yaml \
 --region=${REGION_ID} --project=$PROJECT_ID
+
+gcloud compute networks create default --project=anthos-357623 --subnet-mode=custom --mtu=1460 --bgp-routing-mode=regional
+gcloud compute networks subnets create NAME --project=anthos-357623 --range=IP_RANGE --stack-type=IPV4_ONLY --network=default --region=REGION
+gcloud compute networks subnets create default --project=anthos-357623 --range=10.152.0.0/20 --stack-type=IPV4_ONLY --network=default --region=australia-southeast1 --enable-private-ip-google-access
