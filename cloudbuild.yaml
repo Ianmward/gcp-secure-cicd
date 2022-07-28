@@ -37,3 +37,15 @@ steps:
       -note_name=${_NOTE_NAME}
     waitFor: ['push']
     id: vulnsign
+  # Create release in Google Cloud Deploy
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: /bin/bash
+    args:
+    - -c
+    - |
+      gcloud deploy releases create rel-${SHORT_SHA} \
+      --delivery-pipeline=security-demo-pipelne \
+      --region=australia-southeast1 \
+      --annotations=commitId=${REVISION_ID} \
+      --images=pop-stats=$(/bin/cat image-digest.txt)
+    waitFor: ['vulnsign']
