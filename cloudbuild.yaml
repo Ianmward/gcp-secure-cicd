@@ -54,7 +54,7 @@ images:
 options:
   requestedVerifyOption: VERIFIED
   pool:
-    name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/private-pool'
+    name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/anthos-privatepool'
 # Set these variables in your trigger or directly in the substitutions stanza below: 
 substitutions:
     _KMS_KEY_NAME: projects/anthos-357623/locations/global/keyRings/kritis-signer-key-ring/cryptoKeys/kritis-signer-key/cryptoKeyVersions/1
