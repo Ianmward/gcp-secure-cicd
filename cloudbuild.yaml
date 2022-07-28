@@ -3,11 +3,11 @@
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
     dir: 'app'
     id: build
   # Run api tests
-  - name: 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
+  - name: 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
@@ -18,8 +18,8 @@ steps:
     args:
     - -c
     - |
-      docker push us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} &&
-      docker image inspect us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
+      docker push australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} &&
+      docker image inspect australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
       cat image-digest.txt
     id: push
   - name: gcr.io/$PROJECT_ID/kritis-signer
@@ -45,16 +45,16 @@ steps:
     - |
       gcloud deploy releases create rel-${SHORT_SHA} \
       --delivery-pipeline=security-demo-pipelne \
-      --region=us-central1 \
+      --region=australia-southeast1 \
       --annotations=commitId=${REVISION_ID} \
       --images=pop-stats=$(/bin/cat image-digest.txt)
     waitFor: ['vulnsign']
 images:
-- us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
+- australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
 options:
   requestedVerifyOption: VERIFIED
   pool:
-    name: 'projects/$PROJECT_ID/locations/us-central1/workerPools/private-pool'
+    name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/private-pool'
 # Set these variables in your trigger or directly in the substitutions stanza below: 
 #substitutions:
 #    _KMS_KEY_NAME: MISSING_KMS_KEY_NAME 
