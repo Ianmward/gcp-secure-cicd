@@ -49,15 +49,14 @@ steps:
       --annotations=commitId=${REVISION_ID} \
       --images=pop-stats=$(/bin/cat image-digest.txt)
     waitFor: ['vulnsign']
-    images:
-    - australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
-    options:
-      requestedVerifyOption: VERIFIED
-      pool:
-        name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/private-pool'
+images:
+- australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
+options:
+  requestedVerifyOption: VERIFIED
+  pool:
+    name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/private-pool'
 # Set these variables in your trigger or directly in the substitutions stanza below: 
-#substitutions:
-#    _KMS_KEY_NAME: MISSING_KMS_KEY_NAME 
-#    _KMS_DIGEST_ALG: MISSING_KMS_DIGEST_ALG 
-#    _NOTE_NAME: MISSING_NOTE_NAME 
-    
+substitutions:
+    _KMS_KEY_NAME: projects/anthos-357623/locations/global/keyRings/kritis-signer-key-ring/cryptoKeys/kritis-signer-key/cryptoKeyVersions/1
+    _KMS_DIGEST_ALG: SHA256 
+    _NOTE_NAME: projects/anthos-357623/notes/my-signer-note
