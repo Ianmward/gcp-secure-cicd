@@ -15,7 +15,9 @@ gcloud config set project $PROJECT_ID
 gcloud services enable container.googleapis.com cloudbuild.googleapis.com \
 artifactregistry.googleapis.com clouddeploy.googleapis.com \
 cloudresourcemanager.googleapis.com binaryauthorization.googleapis.com \
-cloudkms.googleapis.com
+cloudkms.googleapis.com anthos.googleapis.com gkemulticloud.googleapis.com \
+anthosconfigmanagement.googleapis.com mesh.googleapis.com \
+anthosgke.googleapis.com meshca.googleapis.com meshconfig.googleapis.com
 # add the clouddeploy.jobRunner role to your compute service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
