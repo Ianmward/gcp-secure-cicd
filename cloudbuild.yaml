@@ -12,3 +12,13 @@ steps:
     args: ["api_tests.py"]
     dir: 'app'
     id: apitest
+  # Push the container image to Artifact Registry
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: /bin/bash
+    args:
+    - -c
+    - |
+      docker push australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} &&
+      docker image inspect australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
+      cat image-digest.txt
+    id: push
