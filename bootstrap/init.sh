@@ -29,6 +29,8 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 # creates the Artifact Registry repo
 gcloud artifacts repositories create pop-stats --location=${REGION_ID} \
 --repository-format=docker
+gcloud artifacts repositories add-iam-policy-binding pop-stats --location=${REGION_ID} \
+--member='allUsers' --role='roles/viewer'
 
 for fil in bootstrap/gke-delete.sh bootstrap/gke-init.sh cloudbuild.yaml cloudbuild-ci-only.yaml templates/template.clouddeploy.yaml templates/template.allowlist-policy.yaml
 do
