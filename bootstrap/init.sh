@@ -27,7 +27,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
     --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
     --role="roles/container.developer"
 # creates the Artifact Registry repo
-gcloud artifacts repositories create pop-stats --location=${REGION_ID}" \
+gcloud artifacts repositories create pop-stats --location=${REGION_ID} \
 --repository-format=docker
 # customize the clouddeploy.yaml 
 sed -e "s/project-id-here/${PROJECT_ID}/" templates/template.clouddeploy.yaml > clouddeploy.yaml
@@ -37,8 +37,8 @@ sed -e "s/project-id-here/${PROJECT_ID}/" templates/template.attestor-policy.yam
 
 for fil in bootstrap/gke-delete.sh bootstrap/gke-init.sh cloudbuild.yaml cloudbuild-ci-only.yaml templates/template.clouddeploy.yaml templates/template.allowlist-policy.yaml
 do
-  sed -e 's/us-central1/${REGION_ID}/' $i > $i
+  sed -e "s/us-central1/${REGION_ID}/" $fil > $fil
 done
 # creates the Google Cloud Deploy pipeline
 gcloud deploy apply --file clouddeploy.yaml \
---region=${REGION_ID}" --project=$PROJECT_ID
+--region=${REGION_ID} --project=$PROJECT_ID
