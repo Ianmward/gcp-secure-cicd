@@ -37,7 +37,9 @@ sed -e "s/project-id-here/${PROJECT_ID}/" templates/template.attestor-policy.yam
 
 for fil in bootstrap/gke-delete.sh bootstrap/gke-init.sh cloudbuild.yaml cloudbuild-ci-only.yaml templates/template.clouddeploy.yaml templates/template.allowlist-policy.yaml
 do
-  sed -e "s/us-central1/${REGION_ID}/" $fil > $fil
+  mv $fil $fil.bak
+  sed -e "s/us-central1/${REGION_ID}/" $fil.bak > $fil
+  #rm $fil.bak
 done
 # creates the Google Cloud Deploy pipeline
 gcloud deploy apply --file clouddeploy.yaml \
