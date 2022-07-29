@@ -1,4 +1,4 @@
-# replace "project-id-here" in the three targets below with your actual project(s)
+# replace "anthos-357623" in the three targets below with your actual project(s)
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
@@ -21,7 +21,7 @@ metadata:
   name: test-sec
 description: test cluster
 gke:
-  cluster: projects/project-id-here/locations/us-central1-a/clusters/test-sec
+  cluster: projects/anthos-357623/locations/australia-southeast1-a/clusters/test-sec
 ---
 
 apiVersion: deploy.cloud.google.com/v1
@@ -30,7 +30,7 @@ metadata:
   name: staging-sec
 description: staging cluster
 gke:
-  cluster: projects/project-id-here/locations/us-central1/clusters/staging-sec
+  cluster: projects/anthos-357623/locations/australia-southeast1/clusters/staging-sec
 ---
 
 apiVersion: deploy.cloud.google.com/v1
@@ -40,4 +40,4 @@ metadata:
 description: prod AWS cluster
 requireApproval: true
 anthosCluster:
-  membership: projects/project-id-here/locations/global/memberships/prod
+  membership: projects/anthos-357623/locations/global/memberships/prod
