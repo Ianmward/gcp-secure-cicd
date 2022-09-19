@@ -10,7 +10,7 @@ serialPipeline:
  - targetId: staging-sec
    profiles:
    - staging
- - targetId: prod
+ - targetId: prod-sec
    profiles:
    - prod
 ---
@@ -36,8 +36,8 @@ gke:
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: prod
-description: prod AWS cluster
+  name: prod-sec
+description: prod GKE cluster
 requireApproval: true
-anthosCluster:
-  membership: projects/anthos-357623/locations/global/memberships/prod
+gke:
+  membership: projects/anthos-357623/locations/australia-southeast1/clusters/prod-sec
