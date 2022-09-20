@@ -6,11 +6,11 @@ metadata:
 description: Security-focused CI/CD pipeline on GCP
 serialPipeline:
  stages:
- - targetId: test
- - targetId: staging
+ - targetId: test-sec
+ - targetId: staging-sec
    profiles:
    - staging
- - targetId: prod
+ - targetId: prod-sec
    profiles:
    - prod
 ---
@@ -18,26 +18,26 @@ serialPipeline:
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: test
+  name: test-sec
 description: test cluster
 gke:
-  cluster: projects/project-id-here/locations/us-central1/clusters/test
+  cluster: projects/project-id-here/locations/us-central1/clusters/test-sec
 ---
 
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: staging
+  name: staging-sec
 description: staging cluster
 gke:
-  cluster: projects/project-id-here/locations/us-central1/clusters/staging
+  cluster: projects/project-id-here/locations/us-central1/clusters/staging-sec
 ---
 
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: prod
-description: prod AWS cluster
+  name: prod-sec
+description: prod GKE cluster
 requireApproval: true
-anthosCluster:
-  membership: projects/project-id-here/locations/global/memberships/prod
+gke:
+  cluster: projects/project-id-here/locations/us-central1/clusters/prod-sec
