@@ -52,7 +52,7 @@ steps:
 images:
 - australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
 options:
-  requestedVerifyOption: VERIFIED
+  requestedVerifyOption: VERIFIED 
   pool:
     name: 'projects/$PROJECT_ID/locations/australia-southeast1/workerPools/anthos-privatepool'
 # Set these variables in your trigger or directly in the substitutions stanza below: 
