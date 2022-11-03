@@ -1,6 +1,24 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 steps:
+  # Run SonarCube check
+  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    id: '0: Sonarqube Integration - code quality inspection'
+    args:
+      - '-Dsonar.host.url=https://sonarcloud.io'
+      - '-Dsonar.login=$_SONAR_LOGIN'
+      - '-Dsonar.projectKey=$_SONAR_PROJECT'
+      - '-Dsonar.organization=$_SONAR_ORG'
+      - '-Dsonar.sources=.'
+  # Linting for static analysis
+  - name: 'gcr.io/cloud-builders/docker'
+    id: '1 Linting Dockerfile for Static Analysis'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        docker run --rm -i hadolint/hadolint hadolint -f json - < ./Dockerfile > /workspace/res.txt ; \
+        if [[ $(cat res.txt | wc -c) -gt 2 ]] ; then echo 'Static Analysis failed' && cat res.txt && exit 1; else echo 'Linting passed'; fi
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
