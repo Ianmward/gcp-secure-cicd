@@ -64,7 +64,7 @@ steps:
       - -xe
       - -c
       - |-
-        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:$SHORT_SHA)
+        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})
         /scripts/create_attestation.sh \
         -p "$PROJECT_ID" \
         -i "$${FQ_DIGEST}" \
