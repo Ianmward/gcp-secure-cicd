@@ -57,22 +57,39 @@ steps:
         gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
         --format='value(vulnerability.effectiveSeverity)' | grep 'HIGH'| wc -l>/workspace/total.txt; \
         if [[ $(cat /workspace/total.txt) -gt 8 ]] ; then echo 'CVE failed' && exit 1; else echo 'CVE passed'; fi
-  - name: gcr.io/$PROJECT_ID/kritis-signer
-    id: '7 Sign Image'
-    entrypoint: /bin/bash
+  - name: 'gcr.io/$PROJECT_ID/cloudbuild-attestor'
+    id: '7 Attest Image (Binary Auth)'
+    entrypoint: 'sh'
     args:
-    - -c
-    - |
-      /kritis/signer \
-      -v=10 \
-      -alsologtostderr \
-      -image=$(/bin/cat image-digest.txt) \
-      -policy=./policy/kritis/vulnz-signing-policy.yaml \
-      -kms_key_name=${_KMS_KEY_NAME} \
-      -kms_digest_alg=${_KMS_DIGEST_ALG} \
-      -note_name=${_NOTE_NAME}
+      - -xe
+      - -c
+      - |-
+        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:$SHORT_SHA)
+        /scripts/create_attestation.sh \
+        -p "$PROJECT_ID" \
+        -i "$${FQ_DIGEST}" \
+        -a "$_VULNZ_ATTESTOR" \
+        -v "$_VULNZ_KMS_KEY_VERSION" \
+        -k "$_VULNZ_KMS_KEY" \
+        -l "$_KMS_LOCATION" \
+        -r "$_KMS_KEYRING"
+#  - name: gcr.io/$PROJECT_ID/kritis-signer
+#    id: '7 Sign Image'
+#    entrypoint: /bin/bash
+#    args:
+#    - -c
+#    - |
+#      /kritis/signer \
+#      -v=10 \
+#      -alsologtostderr \
+#      -image=$(/bin/cat image-digest.txt) \
+#      -policy=./policy/kritis/vulnz-signing-policy.yaml \
+#      -kms_key_name=${_KMS_KEY_NAME} \
+#      -kms_digest_alg=${_KMS_DIGEST_ALG} \
+#      -note_name=${_NOTE_NAME}
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: '8 Create Cloud Deploy Release'
     entrypoint: /bin/bash
     args:
     - -c
