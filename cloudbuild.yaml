@@ -21,17 +21,18 @@ steps:
         if [[ $(cat res.txt | wc -c) -gt 2 ]] ; then echo 'Static Analysis failed' && cat res.txt && exit 1; else echo 'Linting passed'; fi
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
+    id: '2 Build Docker Image'
     args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
     dir: 'app'
-    id: '2 Build Docker Image'
   # Run api tests
   - name: 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
+    id: '3 Run APItest'
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
-    id: '3 Run APItest'
   # Push the container image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
+    id: '4 Push to Artifact Registry'
     entrypoint: /bin/bash
     args:
     - -c
@@ -39,7 +40,6 @@ steps:
       docker push $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA} &&
       docker image inspect australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
       cat image-digest.txt
-    id: '4 Push to Artifact Registry'
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: '5 Run Common Vulnerability Analysis scan'
     entrypoint: sh
@@ -58,6 +58,7 @@ steps:
         --format='value(vulnerability.effectiveSeverity)' | grep 'HIGH'| wc -l>/workspace/total.txt; \
         if [[ $(cat /workspace/total.txt) -gt 8 ]] ; then echo 'CVE failed' && exit 1; else echo 'CVE passed'; fi
   - name: gcr.io/$PROJECT_ID/kritis-signer
+    id: '7 Sign Image'
     entrypoint: /bin/bash
     args:
     - -c
@@ -70,8 +71,6 @@ steps:
       -kms_key_name=${_KMS_KEY_NAME} \
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
-    waitFor: ['4 Push to Artifact Registry']
-    id: vulnsign
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: /bin/bash
@@ -83,7 +82,6 @@ steps:
       --region=australia-southeast1 \
       --annotations=commitId=${REVISION_ID} \
       --images=pop-stats=$(/bin/cat image-digest.txt)
-    waitFor: ['vulnsign']
 images:
 - $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA}
 options:
