@@ -36,7 +36,7 @@ steps:
     args:
     - -c
     - |
-      docker push australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} &&
+      docker push $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA} &&
       docker image inspect australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
       cat image-digest.txt
     id: '4 Push to Artifact Registry'
@@ -46,7 +46,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud artifacts docker images scan $_IMAGE_NAME:$SHORT_SHA \
+        gcloud artifacts docker images scan $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA} \
         --format='value(response.scan)' > /workspace/scan_id.txt
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: '6 Validate CVE Scan'
@@ -85,7 +85,7 @@ steps:
       --images=pop-stats=$(/bin/cat image-digest.txt)
     waitFor: ['vulnsign']
 images:
-- australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
+- $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA}
 options:
   requestedVerifyOption: VERIFIED 
   pool:
