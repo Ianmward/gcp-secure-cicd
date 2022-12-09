@@ -57,22 +57,32 @@ steps:
         gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
         --format='value(vulnerability.effectiveSeverity)' | grep 'HIGH'| wc -l>/workspace/total.txt; \
         if [[ $(cat /workspace/total.txt) -gt 8 ]] ; then echo 'CVE failed' && exit 1; else echo 'CVE passed'; fi
-  - name: 'gcr.io/$PROJECT_ID/cloudbuild-attestor'
-    id: '7 Attest Image (Binary Auth)'
-    entrypoint: 'sh'
+  - id: 'create-attestation'
+    name: 'gcr.io/${PROJECT_ID}/binauthz-attestation:latest'
     args:
-      - -xe
-      - -c
-      - |-
-        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})
-        /scripts/create_attestation.sh \
-        -p "$PROJECT_ID" \
-        -i "$${FQ_DIGEST}" \
-        -a "$_VULNZ_ATTESTOR" \
-        -v "$_VULNZ_KMS_KEY_VERSION" \
-        -k "$_VULNZ_KMS_KEY" \
-        -l "$_KMS_LOCATION" \
-        -r "$_KMS_KEYRING"
+      - '--artifact-url'
+#      - 'gcr.io/${PROJECT_ID}/helloworld:latest'
+      - '$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})'
+      - '--attestor'
+      - 'projects/${PROJECT_ID}/attestors/$_VULNZ_ATTESTOR'
+      - '--keyversion'
+      - 'projects/${PROJECT_ID}/locations/${_KMS_LOCATION}/keyRings/${_KMS_KEYRING}/cryptoKeys/${_VULNZ_KMS_KEY}/cryptoKeyVersions/${_VULNZ_KMS_KEY_VERSION}'
+#  - name: 'gcr.io/$PROJECT_ID/cloudbuild-attestor'
+#    id: '7 Attest Image (Binary Auth)'
+#    entrypoint: 'sh'
+#    args:
+#      - -xe
+#      - -c
+#      - |-
+#        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})
+#        /scripts/create_attestation.sh \
+#        -p "$PROJECT_ID" \
+#        -i "$${FQ_DIGEST}" \
+#        -a "$_VULNZ_ATTESTOR" \
+#        -v "$_VULNZ_KMS_KEY_VERSION" \
+#        -k "$_VULNZ_KMS_KEY" \
+#        -l "$_KMS_LOCATION" \
+#        -r "$_KMS_KEYRING"
 #  - name: gcr.io/$PROJECT_ID/kritis-signer
 #    id: '7 Sign Image'
 #    entrypoint: /bin/bash
