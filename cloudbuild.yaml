@@ -61,7 +61,7 @@ steps:
     id: '7 create-attestation'
     args:
       - '--artifact-url'
-      - '$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})'
+      - '${_REGISTRY_ROOT}/${PROJECT_ID}/${_REGISTRY_NAME}/${_IMAGE_NAME}:${COMMIT_SHA}'
       - '--attestor'
       - 'projects/${PROJECT_ID}/attestors/$_VULNZ_ATTESTOR'
       - '--keyversion'
