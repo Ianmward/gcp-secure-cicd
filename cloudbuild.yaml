@@ -23,13 +23,13 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     id: '2 Build Docker Image'
     args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
-    dir: 'app'
+    dir: 'app-java'
   # Run api tests
   - name: 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
     id: '3 Run APItest'
     entrypoint: python
     args: ["api_tests.py"]
-    dir: 'app'
+    dir: 'app-java'
   # Push the container image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
     id: '4 Push to Artifact Registry'
