@@ -9,7 +9,7 @@ steps:
       - '-Dsonar.login=$_SONAR_LOGIN'
       - '-Dsonar.projectKey=$_SONAR_PROJECT'
       - '-Dsonar.organization=$_SONAR_ORG'
-      - '-Dsonar.sources=.'
+      - '-Dsonar.sources=./app'
   # Linting for static analysis
   - name: 'gcr.io/cloud-builders/docker'
     id: '1 Linting Dockerfile for Static Analysis'
