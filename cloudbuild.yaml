@@ -20,20 +20,20 @@ steps:
         docker run --rm -i hadolint/hadolint hadolint -f json - < ./Dockerfile > /workspace/res.txt ; \
         if [[ $(cat res.txt | wc -c) -gt 2 ]] ; then echo 'Static Analysis failed' && cat res.txt && exit 1; else echo 'Linting passed'; fi
   # Build and tag using commit sha
-  - name: gcr.io/k8s-skaffold/pack
-    id: '2 Build Docker Image'
-    args:
-      - build
-      - '$_REGISTRY_ROOT/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
-      - '--builder=gcr.io/buildpacks/builder:v1'
-      - '--network=cloudbuild'
-      - '--path=.'
-    dir: 'app'
-    entrypoint: pack
-#  - name: 'gcr.io/cloud-builders/docker'
+#  - name: gcr.io/k8s-skaffold/pack
 #    id: '2 Build Docker Image'
-#    args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+#    args:
+#      - build
+#      - '$_REGISTRY_ROOT/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+#      - '--builder=gcr.io/buildpacks/builder:v1'
+#      - '--network=cloudbuild'
+#      - '--path=.'
 #    dir: 'app'
+#    entrypoint: pack
+  - name: 'gcr.io/cloud-builders/docker'
+    id: '2 Build Docker Image'
+    args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    dir: 'app'
   # Run api tests
   - name: '$_REGISTRY_ROOT/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
     id: '3 Run APItest'
