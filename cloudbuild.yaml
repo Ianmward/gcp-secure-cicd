@@ -17,7 +17,7 @@ steps:
     args:
       - '-c'
       - |
-        docker run --rm -i hadolint/hadolint hadolint -f json - < ./Dockerfile > /workspace/res.txt ; \
+        docker run --rm -i hadolint/hadolint hadolint -f json - < ./app/Dockerfile > /workspace/res.txt ; \
         if [[ $(cat res.txt | wc -c) -gt 2 ]] ; then echo 'Static Analysis failed' && cat res.txt && exit 1; else echo 'Linting passed'; fi
   # Build and tag using commit sha
 #  - name: gcr.io/k8s-skaffold/pack
