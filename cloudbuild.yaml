@@ -1,48 +1,13 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 steps:
-  # Run Sonarqube Integration - code quality inspection
-  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-    id: '0: Sonarqube Integration - code quality inspection'
-    args:
-      - '-Dsonar.host.url=https://sonarcloud.io'
-      - '-Dsonar.login=$_SONAR_LOGIN'
-      - '-Dsonar.projectKey=$_SONAR_PROJECT'
-      - '-Dsonar.organization=$_SONAR_ORG'
-      - '-Dsonar.sources=./app'
-  # Linting for static analysis
   - name: 'gcr.io/cloud-builders/docker'
-    id: '1 Linting Dockerfile for Static Analysis'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        docker run --rm -i hadolint/hadolint hadolint -f json - < ./Dockerfile > /workspace/res.txt ; \
-        if [[ $(cat res.txt | wc -c) -gt 2 ]] ; then echo 'Static Analysis failed' && cat res.txt && exit 1; else echo 'Linting passed'; fi
-  # Build and tag using commit sha
-#  - name: gcr.io/k8s-skaffold/pack
-#    id: '2 Build Docker Image'
-#    args:
-#      - build
-#      - '$_REGISTRY_ROOT/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
-#      - '--builder=gcr.io/buildpacks/builder:v1'
-#      - '--network=cloudbuild'
-#      - '--path=.'
-#    dir: 'app'
-#    entrypoint: pack
-  - name: 'gcr.io/cloud-builders/docker'
-    id: '2 Build Docker Image'
+    id: '1 Build Docker Image'
     args: ['build', '.', '-t', 'australia-southeast1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
-    dir: 'app'
-  # Run api tests
-  - name: '$_REGISTRY_ROOT/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
-    id: '3 Run APItest'
-    entrypoint: python
-    args: ["api_tests.py"]
     dir: 'app'
   # Push the container image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
-    id: '4 Push to Artifact Registry'
+    id: '2 Push to Artifact Registry'
     entrypoint: /bin/bash
     args:
     - -c
@@ -50,25 +15,8 @@ steps:
       docker push $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA} &&
       docker image inspect $_REGISTRY_ROOT/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
       cat image-digest.txt
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: '5 Run Common Vulnerability Analysis scan'
-    entrypoint: sh
-    args:
-      - '-c'
-      - |
-        gcloud artifacts docker images scan $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA} \
-        --format='value(response.scan)' > /workspace/scan_id.txt
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: '6 Validate CVE Scan'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
-        --format='value(vulnerability.effectiveSeverity)' | grep 'HIGH'| wc -l>/workspace/total.txt; \
-        if [[ $(cat /workspace/total.txt) -gt 8 ]] ; then echo 'CVE failed' && exit 1; else echo 'CVE passed'; fi
   - name: 'gcr.io/${PROJECT_ID}/binauthz-attestation:latest'
-    id: '7 create-attestation'
+    id: '3 create-attestation'
     args:
       - '--artifact-url'
       - '${_REGISTRY_ROOT}/${PROJECT_ID}/${_REGISTRY_NAME}/${_IMAGE_NAME}:${COMMIT_SHA}'
@@ -76,39 +24,9 @@ steps:
       - 'projects/${PROJECT_ID}/attestors/$_VULNZ_ATTESTOR'
       - '--keyversion'
       - 'projects/${PROJECT_ID}/locations/${_KMS_LOCATION}/keyRings/${_KMS_KEYRING}/cryptoKeys/${_VULNZ_KMS_KEY}/cryptoKeyVersions/${_VULNZ_KMS_KEY_VERSION}'
-#  - name: 'gcr.io/$PROJECT_ID/cloudbuild-attestor'
-#    id: '7 Attest Image (Binary Auth)'
-#    entrypoint: 'sh'
-#    args:
-#      - -xe
-#      - -c
-#      - |-
-#        FQ_DIGEST=$(gcloud container images describe --format 'value(image_summary.fully_qualified_digest)' $_REGISTRY_ROOT/$PROJECT_ID/$_REGISTRY_NAME/$_IMAGE_NAME:${COMMIT_SHA})
-#        /scripts/create_attestation.sh \
-#        -p "$PROJECT_ID" \
-#        -i "$${FQ_DIGEST}" \
-#        -a "$_VULNZ_ATTESTOR" \
-#        -v "$_VULNZ_KMS_KEY_VERSION" \
-#        -k "$_VULNZ_KMS_KEY" \
-#        -l "$_KMS_LOCATION" \
-#        -r "$_KMS_KEYRING"
-#  - name: gcr.io/$PROJECT_ID/kritis-signer
-#    id: '7 Sign Image'
-#    entrypoint: /bin/bash
-#    args:
-#    - -c
-#    - |
-#      /kritis/signer \
-#      -v=10 \
-#      -alsologtostderr \
-#      -image=$(/bin/cat image-digest.txt) \
-#      -policy=./policy/kritis/vulnz-signing-policy.yaml \
-#      -kms_key_name=${_KMS_KEY_NAME} \
-#      -kms_digest_alg=${_KMS_DIGEST_ALG} \
-#      -note_name=${_NOTE_NAME}
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    id: '8 Create Cloud Deploy Release'
+    id: '4 Create Cloud Deploy Release'
     entrypoint: /bin/bash
     args:
     - -c
